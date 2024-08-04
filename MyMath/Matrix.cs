@@ -49,7 +49,61 @@ namespace MyMath
                 }
             }
             return result;
-        } 
+        }
+        public static Matrix operator +(Matrix a, int b)
+        {
+            Matrix result = new Matrix(a.Rows, a.Columns);
+
+            for (int i = 0; i < a.Rows; i++)
+            {
+                for (int j = 0; j < a.Columns; j++)
+                {
+                    result[i][j] = a[i][j] + b;
+                }
+            }
+            return result;
+        }
+        public static Matrix operator *(Matrix a, int b)
+        {
+            Matrix result = new Matrix(a.Rows, a.Columns);
+
+            for (int i = 0; i < a.Rows; i++)
+            {
+                for (int j = 0; j < a.Columns; j++)
+                {
+                    result[i][j] = a[i][j] * b;
+                }
+            }
+            return result;
+        }
+        public static Matrix operator -(Matrix a)
+        {
+            Matrix result = new Matrix(a.Rows, a.Columns);
+
+            for (int i = 0; i < a.Rows; i++)
+            {
+                for (int j = 0; j < a.Columns; j++)
+                {
+                    result[i][j] = a[i][j] * -1;
+                }
+            }
+            return result;
+        }
+        public static Matrix operator *(Matrix a, Matrix b)
+        {
+            if (a.Columns != b.Rows) throw new ArgumentException(message: "To multiply matrices, number of columns in first matrix must be equal to number of columns in second matrix");
+
+            //Matrix result = new Matrix(a.Rows, b.Columns);
+
+            //for (int i = 0; i < a.Rows; i++)
+            //{
+            //    for (int j = 0; j < a.Columns; j++)
+            //    {
+            //        result[i][j] = a[i][j] * b;
+            //    }
+            //}
+            //return result;
+        }
         public int[] this[int i]
         {
             get => matrix[i];
