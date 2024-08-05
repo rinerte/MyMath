@@ -47,7 +47,98 @@ namespace MyMath
             }
             return result;
         }
+        public static Matrix operator -(Matrix a, Matrix b)
+        {
+            if (a.Columns != b.Columns || a.Rows != b.Rows) throw new ArgumentException(message: "Can not substract matrix with different size");
+            Matrix result = new Matrix(a.Rows, a.Columns);
+
+            for (int i = 0; i < a.Rows; i++)
+            {
+                for (int j = 0; j < a.Columns; j++)
+                {
+                    result[i][j] = a[i][j]- b[i][j];
+                }
+            }
+            return result;
+        }
         public static Matrix operator +(Matrix a, int b)
+        {
+            if(a.Columns!=a.Rows) throw new ArgumentException(message: "You can add number only to square matrix");
+            Matrix result = new Matrix(a.Rows, a.Rows);
+
+            for (int i = 0; i < a.Rows; i++)
+            {
+                for(int j=0; j < a.Columns; j++)
+                {
+                    if (i == j)
+                    {
+                        result[i][j] = a[i][j] + b;
+                    } else 
+                        result[i][j] = a[i][j];
+                }
+            }
+            return result;
+        }
+        public static Matrix operator +(int b,Matrix a)
+        {
+            if (a.Columns != a.Rows) throw new ArgumentException(message: "You can add number only to square matrix");
+            Matrix result = new Matrix(a.Rows, a.Rows);
+
+            for (int i = 0; i < a.Rows; i++)
+            {
+                for (int j = 0; j < a.Columns; j++)
+                {
+                    if (i == j)
+                    {
+                        result[i][j] = a[i][j] + b;
+                    }
+                    else
+                        result[i][j] = a[i][j];
+                }
+            }
+            return result;
+        }
+        public static Matrix operator -(int b, Matrix a)
+        {
+            if (a.Columns != a.Rows) throw new ArgumentException(message: "You can subtract number only with square matrix");
+            Matrix result = new Matrix(a.Rows, a.Rows);
+
+            for (int i = 0; i < a.Rows; i++)
+            {
+                for (int j = 0; j < a.Columns; j++)
+                {
+                    if (i == j)
+                    {
+                        result[i][j] = b - a[i][j];
+                    }
+                    else
+                        result[i][j] = a[i][j];
+                }
+            }
+            return result;
+        }
+        public static Matrix operator -( Matrix a, int b)
+        {
+            if (a.Columns != a.Rows) throw new ArgumentException(message: "You can add number only to square matrix");
+            Matrix result = new Matrix(a.Rows, a.Rows);
+
+            for (int i = 0; i < a.Rows; i++)
+            {
+                for (int j = 0; j < a.Columns; j++)
+                {
+                    if (i == j)
+                    {
+                        result[i][j] = a[i][j] - b;
+                    }
+                    else
+                        result[i][j] = a[i][j];
+                }
+            }
+            return result;
+        }
+
+
+        public static Matrix operator *(Matrix a, int b)
         {
             Matrix result = new Matrix(a.Rows, a.Columns);
 
@@ -55,12 +146,12 @@ namespace MyMath
             {
                 for (int j = 0; j < a.Columns; j++)
                 {
-                    result[i][j] = a[i][j] + b;
+                    result[i][j] = a[i][j] * b;
                 }
             }
             return result;
         }
-        public static Matrix operator *(Matrix a, int b)
+        public static Matrix operator *( int b, Matrix a)
         {
             Matrix result = new Matrix(a.Rows, a.Columns);
 
