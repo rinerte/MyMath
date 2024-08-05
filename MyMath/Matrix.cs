@@ -93,16 +93,32 @@ namespace MyMath
         {
             if (a.Columns != b.Rows) throw new ArgumentException(message: "To multiply matrices, number of columns in first matrix must be equal to number of columns in second matrix");
 
-            //Matrix result = new Matrix(a.Rows, b.Columns);
+            Matrix result = new Matrix(a.Rows, b.Columns);
 
-            //for (int i = 0; i < a.Rows; i++)
-            //{
-            //    for (int j = 0; j < a.Columns; j++)
-            //    {
-            //        result[i][j] = a[i][j] * b;
-            //    }
-            //}
-            //return result;
+            for (int i = 0; i < result.Rows; i++)
+            {
+                for (int j = 0; j < result.Columns; j++)
+                {
+                    int r = 0;
+                    for(int k = 0; k < a.Columns; k++)
+                    {
+                        r += a[i][k] * b[k][j];
+                    }
+                    result[i][j] = r;
+                }
+            }
+            return result;
+        }
+        public void Display()
+        {
+            for(int i = 0; i < Rows; i++)
+            {
+                for(int j = 0;j < Columns; j++)
+                {
+                    Console.Write(this[i][j] + " ");
+                }
+                Console.WriteLine();
+            }
         }
         public int[] this[int i]
         {
