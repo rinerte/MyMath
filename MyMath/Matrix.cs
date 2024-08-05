@@ -109,6 +109,18 @@ namespace MyMath
             }
             return result;
         }
+        public static Matrix operator !(Matrix a)
+        {
+            Matrix result = new Matrix(a.Columns, a.Rows);
+            for (int i = 0; i < result.Rows; i++)
+            {
+                for (int j = 0; j < result.Columns; j++)
+                {
+                    result[i][j] = a[j][i];
+                }
+            }
+            return result;
+        }
         public void Display()
         {
             for(int i = 0; i < Rows; i++)
