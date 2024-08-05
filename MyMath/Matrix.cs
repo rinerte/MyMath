@@ -1,4 +1,5 @@
 ﻿using System.Runtime.InteropServices;
+using System.Text;
 
 namespace MyMath
 {
@@ -7,6 +8,8 @@ namespace MyMath
         int rows;
         int columns;
         int[][] matrix;
+        public int Rows { get { return rows; } }
+        public int Columns { get { return columns; } }
         public Matrix(int rows, int columns)
         {
             this.rows = rows;
@@ -14,10 +17,6 @@ namespace MyMath
             matrix = new int[rows][];
             for(int i=0;i<rows;i++) matrix[i] = new int[columns];
         }
-        /// <summary>
-        /// Square matrix
-        /// </summary>
-        /// <param name="rows"></param>
         public Matrix(int rows, bool identityMatrix = false) 
         {
             this.rows = rows;
@@ -32,9 +31,7 @@ namespace MyMath
                     matrix[i][i] = 1;
                 }
             }
-        }
-        public int Rows { get { return rows; } }
-        public int Columns { get { return columns; } }        
+        }       
         public static Matrix operator + (Matrix a, Matrix b)
         {
             if (a.Columns != b.Columns || a.Rows != b.Rows) throw new ArgumentException(message: "Can not sum matrix with different size");
@@ -121,23 +118,23 @@ namespace MyMath
             }
             return result;
         }
-        public void Display()
+        public override string ToString()
         {
+            StringBuilder sb = new StringBuilder();
             for(int i = 0; i < Rows; i++)
             {
                 for(int j = 0;j < Columns; j++)
                 {
-                    Console.Write(this[i][j] + " ");
+                    sb.Append(this[i][j] + " ");
                 }
-                Console.WriteLine();
+                sb.Append("\n");
             }
+            return sb.ToString();
         }
         public int[] this[int i]
         {
             get => matrix[i];
             set => matrix[i] = value;
         }
-
-
     }
 }
