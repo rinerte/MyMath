@@ -20,7 +20,7 @@ namespace MyMath
         public Matrix(int rows, bool identityMatrix = false) 
         {
             this.rows = rows;
-            this.rows = rows;
+            this.columns = rows;
             matrix = new int[rows][];
             for (int i = 0; i < rows; i++) matrix[i] = new int[rows];
 
@@ -31,7 +31,37 @@ namespace MyMath
                     matrix[i][i] = 1;
                 }
             }
-        }       
+        }
+        public int Determinant(Matrix M = null)
+        {
+            if (M == null) M = this;
+
+            if(M.Rows!= M.Columns) throw new ArgumentException(message: "Determinant exist only for square matrix");
+            if(M.Rows ==1) return M[0][0];
+
+            int sum = 0;
+            for(int i = 0; i < M.Rows; i++)
+            {
+                Matrix minor = new(M.Rows - 1);
+                for(int k = 1; k < M.Rows; k++)
+                {
+                    List<int> list = new();
+                    for(int j = 0; j < M.Rows; j++)
+                    {
+                        if (j != i) list.Add(M[k][j]);
+                    }
+                    minor[k - 1] = list.ToArray();
+                }
+                sum += (int)Math.Pow(-1, i) * M[0][i] * Determinant(minor);
+            }
+            return sum;
+        }
+
+        public bool NonSingular()
+        {
+            return Determinant(this) != 0;
+        }
+        // Base operations
         public static Matrix operator + (Matrix a, Matrix b)
         {
             if (a.Columns != b.Columns || a.Rows != b.Rows) throw new ArgumentException(message: "Can not sum matrix with different size");
