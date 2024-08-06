@@ -1,120 +1,157 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Linq.Expressions;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace MyMath
 {
-    public class Matrix
+    public class Matrix<T> where T : struct, IConvertible, IComparable, IFormattable
     {
         int rows;
         int columns;
-        int[][] matrix;
+        T[][] matrix;
         public int Rows { get { return rows; } }
         public int Columns { get { return columns; } }
         public Matrix(int rows, int columns)
         {
             this.rows = rows;
             this.columns = columns;
-            matrix = new int[rows][];
-            for(int i=0;i<rows;i++) matrix[i] = new int[columns];
+            matrix = new T[rows][];
+            for(int i=0;i<rows;i++) matrix[i] = new T[columns];
         }
         public Matrix(int rows, bool identityMatrix = false) 
         {
             this.rows = rows;
             this.columns = rows;
-            matrix = new int[rows][];
-            for (int i = 0; i < rows; i++) matrix[i] = new int[rows];
+            matrix = new T[rows][];
+            for (int i = 0; i < rows; i++) matrix[i] = new T[rows];
 
             if (identityMatrix)
             {
                 for (int i = 0; i < rows; i++)
                 {
-                    matrix[i][i] = 1;
+                    matrix[i][i] = (T)Convert.ChangeType(1, typeof(T));
                 }
             }
         }
-        public static Matrix operator !(Matrix a)
+        public static Matrix<T> operator !(Matrix<T> a)
         {
-            int D = a.Determinant();
-            if (D == 0) throw new ArgumentException(message: "Determinant is equal to 0, matrix is singular, inverse matrix does not exist");
+            T D = a.Determinant();
+            if (D.Equals(default(T))) throw new ArgumentException(message: "Determinant is equal to 0, matrix is singular, inverse matrix does not exist");
 
-            Matrix AT = new(a.Rows);
+            Matrix<T> AT = new(a.Rows);
+            
+            for (int i = 0; i < AT.Rows; i++)
+            {
+                for (int j = 0; j < AT.Rows; j++)
+                {
+                    AT[i][j] = (T)Convert.ChangeType(Math.Pow(-1, i + j) * Convert.ToDouble(Minor(a, i, j).Determinant()), typeof(T));
+                }
+            }
 
+            //AT = ~AT;
+            ////AT = AT * (1 / Convert.ToDouble(D));
+            //AT = Multiply(AT, Divide((T)Convert.ChangeType(1, typeof(T)), (T)Convert.ChangeType(D, typeof(T))));
+            //return AT;
+
+            T inverseD = (T)Convert.ChangeType(1 / Convert.ToDouble(D), typeof(T));
+            AT = AT * inverseD;
+            return AT;
         }
-        public int Determinant(Matrix M = null)
+        public T Determinant(Matrix<T> M = null)
         {
             if (M == null) M = this;
 
             if(M.Rows!= M.Columns) throw new ArgumentException(message: "Determinant exist only for square matrix");
             if(M.Rows ==1) return M[0][0];
 
-            int sum = 0;
-            for(int i = 0; i < M.Rows; i++)
-            {
-                Matrix minor = Minor(M,0,i);
-                sum += (int)Math.Pow(-1, i) * M[0][i] * Determinant(minor);
-            }
-            return sum;
-        }
-        static Matrix Minor(Matrix M, int im, int jm)
-        {
-            if(M.Rows!=M.Columns || M.Rows<2) throw new ArgumentException("Too small matrix");
-            Matrix minor = new(M.Rows - 1);
-
-            int index = 0;
+            double sum = 0;
             for (int i = 0; i < M.Rows; i++)
             {
-                List<int> list = new();
-                for(int j=0; j < M.Rows; j++)
+                Matrix<T> minor = Minor(M, 0, i);
+                sum += Math.Pow(-1, i) * Convert.ToDouble(M[0][i]) * Convert.ToDouble(Determinant(minor));
+            }
+            return (T)Convert.ChangeType(sum, typeof(T));
+        }
+        //static Matrix Minor(Matrix M, int im, int jm)
+        //{
+        //    if(M.Rows!=M.Columns || M.Rows<2) throw new ArgumentException("Too small matrix");
+        //    Matrix minor = new(M.Rows - 1);
+
+        //    int index = 0;
+        //    for (int i = 0; i < M.Rows; i++)
+        //    {
+        //        List<int> list = new();
+        //        for(int j=0; j < M.Rows; j++)
+        //        {
+        //            if (i != im && j!=jm)
+        //            {
+        //                list.Add(M[i][j]);
+        //            }
+        //        }
+        //        minor[index] = list.ToArray();
+        //        if (i != im) index++;
+        //    }
+        //    return minor;
+        //}
+        static Matrix<T> Minor(Matrix<T> M, int rowToRemove, int colToRemove)
+        {
+            if (M.Rows != M.Columns || M.Rows < 2) throw new ArgumentException("Too small matrix");
+            Matrix<T> minor = new Matrix<T>(M.Rows - 1, M.Columns - 1);
+
+            int minorRow = 0;
+            for (int i = 0; i < M.Rows; i++)
+            {
+                if (i == rowToRemove) continue;
+                int minorCol = 0;
+                for (int j = 0; j < M.Columns; j++)
                 {
-                    if (i != im && j!=jm)
-                    {
-                        list.Add(M[i][j]);
-                    }
+                    if (j == colToRemove) continue;
+                    minor[minorRow][minorCol] = M[i][j];
+                    minorCol++;
                 }
-                minor[index] = list.ToArray();
-                if (i != im) index++;
+                minorRow++;
             }
             return minor;
         }
 
         public bool NonSingular()
         {
-            return Determinant(this) != 0;
+            return !Determinant(this).Equals(default(T));
         }
         // Base operations
-        public static Matrix operator + (Matrix a, Matrix b)
+        public static Matrix<T> operator +(Matrix<T> a, Matrix<T> b)
         {
             if (a.Columns != b.Columns || a.Rows != b.Rows) throw new ArgumentException(message: "Can not sum matrix with different size");
 
-            Matrix result = new Matrix(a.Rows, a.Columns);
+            Matrix<T> result = new Matrix<T>(a.Rows, a.Columns);
 
             for(int i = 0; i < a.Rows; i++)
             {
                 for(int j = 0; j < a.Columns; j++)
                 {
-                    result[i][j] = a[i][j] + b[i][j];
+                    result[i][j] = Add(a[i][j] , b[i][j]);
                 }
             }
             return result;
         }
-        public static Matrix operator -(Matrix a, Matrix b)
+        public static Matrix<T> operator -(Matrix<T> a, Matrix<T> b)
         {
             if (a.Columns != b.Columns || a.Rows != b.Rows) throw new ArgumentException(message: "Can not substract matrix with different size");
-            Matrix result = new Matrix(a.Rows, a.Columns);
+            Matrix<T> result = new Matrix<T>(a.Rows, a.Columns);
 
             for (int i = 0; i < a.Rows; i++)
             {
                 for (int j = 0; j < a.Columns; j++)
                 {
-                    result[i][j] = a[i][j]- b[i][j];
+                    result[i][j] = Subtract( a[i][j], b[i][j]);
                 }
             }
             return result;
         }
-        public static Matrix operator +(Matrix a, int b)
+        public static Matrix<T> operator +(Matrix<T> a, T b)
         {
             if(a.Columns!=a.Rows) throw new ArgumentException(message: "You can add number only to square matrix");
-            Matrix result = new Matrix(a.Rows, a.Rows);
+            Matrix<T> result = new Matrix<T>(a.Rows, a.Rows);
 
             for (int i = 0; i < a.Rows; i++)
             {
@@ -122,17 +159,17 @@ namespace MyMath
                 {
                     if (i == j)
                     {
-                        result[i][j] = a[i][j] + b;
+                        result[i][j] = Add( a[i][j] , b);
                     } else 
                         result[i][j] = a[i][j];
                 }
             }
             return result;
         }
-        public static Matrix operator +(int b,Matrix a)
+        public static Matrix<T> operator +(T b, Matrix<T> a)
         {
             if (a.Columns != a.Rows) throw new ArgumentException(message: "You can add number only to square matrix");
-            Matrix result = new Matrix(a.Rows, a.Rows);
+            Matrix<T> result = new Matrix<T>(a.Rows, a.Rows);
 
             for (int i = 0; i < a.Rows; i++)
             {
@@ -140,7 +177,7 @@ namespace MyMath
                 {
                     if (i == j)
                     {
-                        result[i][j] = a[i][j] + b;
+                        result[i][j] =Add( a[i][j],b);
                     }
                     else
                         result[i][j] = a[i][j];
@@ -148,10 +185,10 @@ namespace MyMath
             }
             return result;
         }
-        public static Matrix operator -(int b, Matrix a)
+        public static Matrix<T> operator -(T b, Matrix<T> a)
         {
             if (a.Columns != a.Rows) throw new ArgumentException(message: "You can subtract number only with square matrix");
-            Matrix result = new Matrix(a.Rows, a.Rows);
+            Matrix<T> result = new Matrix<T>(a.Rows, a.Rows);
 
             for (int i = 0; i < a.Rows; i++)
             {
@@ -159,7 +196,7 @@ namespace MyMath
                 {
                     if (i == j)
                     {
-                        result[i][j] = b - a[i][j];
+                        result[i][j] = Subtract( b ,a[i][j]);
                     }
                     else
                         result[i][j] = a[i][j];
@@ -167,10 +204,10 @@ namespace MyMath
             }
             return result;
         }
-        public static Matrix operator -( Matrix a, int b)
+        public static Matrix<T> operator -(Matrix<T> a, T b)
         {
             if (a.Columns != a.Rows) throw new ArgumentException(message: "You can add number only to square matrix");
-            Matrix result = new Matrix(a.Rows, a.Rows);
+            Matrix<T> result = new Matrix<T>(a.Rows, a.Rows);
 
             for (int i = 0; i < a.Rows; i++)
             {
@@ -178,7 +215,7 @@ namespace MyMath
                 {
                     if (i == j)
                     {
-                        result[i][j] = a[i][j] - b;
+                        result[i][j] = Subtract(a[i][j],b);
                     }
                     else
                         result[i][j] = a[i][j];
@@ -188,69 +225,69 @@ namespace MyMath
         }
 
 
-        public static Matrix operator *(Matrix a, int b)
+        public static Matrix<T> operator *(Matrix<T> a, T b)
         {
-            Matrix result = new Matrix(a.Rows, a.Columns);
+            Matrix<T> result = new Matrix<T>(a.Rows, a.Columns);
 
             for (int i = 0; i < a.Rows; i++)
             {
                 for (int j = 0; j < a.Columns; j++)
                 {
-                    result[i][j] = a[i][j] * b;
+                    result[i][j] = Multiply(a[i][j], b);
                 }
             }
             return result;
         }
-        public static Matrix operator *( int b, Matrix a)
+        public static Matrix<T> operator *( T b, Matrix<T> a)
         {
-            Matrix result = new Matrix(a.Rows, a.Columns);
+            Matrix<T> result = new Matrix<T>(a.Rows, a.Columns);
 
             for (int i = 0; i < a.Rows; i++)
             {
                 for (int j = 0; j < a.Columns; j++)
                 {
-                    result[i][j] = a[i][j] * b;
+                    result[i][j] = Multiply(a[i][j], b);
                 }
             }
             return result;
         }
-        public static Matrix operator -(Matrix a)
+        public static Matrix<T> operator -(Matrix<T> a)
         {
-            Matrix result = new Matrix(a.Rows, a.Columns);
+            Matrix<T> result = new Matrix<T>(a.Rows, a.Columns);
 
             for (int i = 0; i < a.Rows; i++)
             {
                 for (int j = 0; j < a.Columns; j++)
                 {
-                    result[i][j] = a[i][j] * -1;
+                   result[i][j] = Negate(a[i][j]);
                 }
             }
             return result;
         }
-        public static Matrix operator *(Matrix a, Matrix b)
+        public static Matrix<T> operator *(Matrix<T> a, Matrix<T> b)
         {
             if (a.Columns != b.Rows) throw new ArgumentException(message: "To multiply matrices, number of columns in first matrix must be equal to number of columns in second matrix");
 
-            Matrix result = new Matrix(a.Rows, b.Columns);
+            Matrix<T> result = new Matrix<T>(a.Rows, b.Columns);
 
             for (int i = 0; i < result.Rows; i++)
             {
                 for (int j = 0; j < result.Columns; j++)
                 {
-                    int r = 0;
-                    for(int k = 0; k < a.Columns; k++)
+                    T sum = default(T);
+                    for (int k = 0; k < a.Columns; k++)
                     {
-                        r += a[i][k] * b[k][j];
+                        sum = sum = Add(sum, Multiply(a[i][k], b[k][j])); 
                     }
-                    result[i][j] = r;
+                    result[i][j] = sum;
                 }
             }
             return result;
         }
        
-        public static Matrix operator ~(Matrix a)
+        public static Matrix<T> operator ~(Matrix<T> a)
         {
-            Matrix result = new Matrix(a.Columns, a.Rows);
+            Matrix<T> result = new Matrix<T>(a.Columns, a.Rows);
             for (int i = 0; i < result.Rows; i++)
             {
                 for (int j = 0; j < result.Columns; j++)
@@ -273,10 +310,32 @@ namespace MyMath
             }
             return sb.ToString();
         }
-        public int[] this[int i]
+        public T[] this[int i]
         {
             get => matrix[i];
             set => matrix[i] = value;
         }
+        private static readonly Func<T, T, T> Add = CreateBinaryOperation(Expression.Add);
+        private static readonly Func<T, T, T> Subtract = CreateBinaryOperation(Expression.Subtract);
+        private static readonly Func<T, T, T> Multiply = CreateBinaryOperation(Expression.Multiply);
+        private static readonly Func<T, T> Negate = CreateUnaryOperation(Expression.Negate);
+        private static readonly Func<T, T, T> Divide = CreateBinaryOperation(Expression.Divide);
+
+
+        private static Func<T, T, T> CreateBinaryOperation(Func<Expression, Expression, BinaryExpression> operation)
+        {
+            var paramA = Expression.Parameter(typeof(T));
+            var paramB = Expression.Parameter(typeof(T));
+            var body = operation(paramA, paramB);
+            return Expression.Lambda<Func<T, T, T>>(body, paramA, paramB).Compile();
+        }
+
+        private static Func<T, T> CreateUnaryOperation(Func<Expression, UnaryExpression> operation)
+        {
+            var param = Expression.Parameter(typeof(T));
+            var body = operation(param);
+            return Expression.Lambda<Func<T, T>>(body, param).Compile();
+        }
+
     }
 }
