@@ -32,6 +32,14 @@ namespace MyMath
                 }
             }
         }
+        public static Matrix operator !(Matrix a)
+        {
+            int D = a.Determinant();
+            if (D == 0) throw new ArgumentException(message: "Determinant is equal to 0, matrix is singular, inverse matrix does not exist");
+
+            Matrix AT = new(a.Rows);
+
+        }
         public int Determinant(Matrix M = null)
         {
             if (M == null) M = this;
@@ -42,19 +50,31 @@ namespace MyMath
             int sum = 0;
             for(int i = 0; i < M.Rows; i++)
             {
-                Matrix minor = new(M.Rows - 1);
-                for(int k = 1; k < M.Rows; k++)
-                {
-                    List<int> list = new();
-                    for(int j = 0; j < M.Rows; j++)
-                    {
-                        if (j != i) list.Add(M[k][j]);
-                    }
-                    minor[k - 1] = list.ToArray();
-                }
+                Matrix minor = Minor(M,0,i);
                 sum += (int)Math.Pow(-1, i) * M[0][i] * Determinant(minor);
             }
             return sum;
+        }
+        static Matrix Minor(Matrix M, int im, int jm)
+        {
+            if(M.Rows!=M.Columns || M.Rows<2) throw new ArgumentException("Too small matrix");
+            Matrix minor = new(M.Rows - 1);
+
+            int index = 0;
+            for (int i = 0; i < M.Rows; i++)
+            {
+                List<int> list = new();
+                for(int j=0; j < M.Rows; j++)
+                {
+                    if (i != im && j!=jm)
+                    {
+                        list.Add(M[i][j]);
+                    }
+                }
+                minor[index] = list.ToArray();
+                if (i != im) index++;
+            }
+            return minor;
         }
 
         public bool NonSingular()
@@ -227,7 +247,8 @@ namespace MyMath
             }
             return result;
         }
-        public static Matrix operator !(Matrix a)
+       
+        public static Matrix operator ~(Matrix a)
         {
             Matrix result = new Matrix(a.Columns, a.Rows);
             for (int i = 0; i < result.Rows; i++)
