@@ -6,6 +6,8 @@ namespace MyMath
 {
     public class Matrix<T> where T : struct, IConvertible, IComparable, IFormattable
     {
+        // plan: why I did it generic?
+        // remove this changes
         int rows;
         int columns;
         T[][] matrix;
