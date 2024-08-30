@@ -6,26 +6,25 @@ namespace MyMath
 {
     public class Matrix<T> where T : struct, IConvertible, IComparable, IFormattable
     {
-        // plan: why I did it generic?
-        // remove this changes
+        
         int rows;
         int columns;
-        T[][] matrix;
+        int[][] matrix;
         public int Rows { get { return rows; } }
         public int Columns { get { return columns; } }
         public Matrix(int rows, int columns)
         {
             this.rows = rows;
             this.columns = columns;
-            matrix = new T[rows][];
-            for(int i=0;i<rows;i++) matrix[i] = new T[columns];
+            matrix = new int[rows][];
+            for(int i=0;i<rows;i++) matrix[i] = new int[columns];
         }
         public Matrix(int rows, bool identityMatrix = false) 
         {
             this.rows = rows;
             this.columns = rows;
-            matrix = new T[rows][];
-            for (int i = 0; i < rows; i++) matrix[i] = new T[rows];
+            matrix = new int[rows][];
+            for (int i = 0; i < rows; i++) matrix[i] = new int[rows];
 
             if (identityMatrix)
             {
